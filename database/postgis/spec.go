@@ -76,14 +76,24 @@ func (spec *TableSpec) CreateTableSQL() string {
 func (spec *TableSpec) InsertSQL() string {
 	var cols []string
 	var vars []string
+	var el string
+	
 	for _, col := range spec.Columns {
+
+// On caste en multi pour admin, buildings, landuse, water
+
+		if col.Name == "water" {
+			el = col.Type
+		} else {
+			el = col.Type.PrepareInsertSql(len(vars)+1, spec)
+		}
+
 		cols = append(cols, "\""+col.Name+"\"")
-		vars = append(vars,
-			col.Type.PrepareInsertSql(len(vars)+1, spec))
+		vars = append(vars, el)
 	}
 	columns := strings.Join(cols, ", ")
 	placeholders := strings.Join(vars, ", ")
-
+	
 	return fmt.Sprintf(`INSERT INTO "%s"."%s" (%s) VALUES (%s)`,
 		spec.Schema,
 		spec.FullName,
